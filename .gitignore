@@ -1,0 +1,7 @@
+# Build artifacts
+*.o
+*.a
+/example_mini
+
+# macOS
+.DS_Store
