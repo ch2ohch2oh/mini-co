@@ -2,6 +2,9 @@
 *.o
 *.a
 /example_mini
+/example_deps
+/example_await
+/example_event
 
 # macOS
 .DS_Store
