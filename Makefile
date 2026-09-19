@@ -4,28 +4,36 @@ CXXFLAGS += -I.
 AR ?= ar
 CLANG_FORMAT ?= clang-format
 
-LIB = libminico.a
+BUILD_DIR = build
+LIB = $(BUILD_DIR)/libminico.a
 DEMOS = example_mini example_deps example_await example_event
+BINS = $(DEMOS:%=$(BUILD_DIR)/%)
 EXAMPLES_DIR = examples
 HEADERS = mini_co.h
 SOURCES = mini_co.cpp $(DEMOS:%=$(EXAMPLES_DIR)/%.cpp)
 
-all: $(LIB) $(DEMOS)
+all: $(LIB) $(BINS)
 
-$(LIB): mini_co.o
+$(LIB): $(BUILD_DIR)/mini_co.o | $(BUILD_DIR)
 	$(AR) rcs $@ $^
 
-$(DEMOS): %: $(EXAMPLES_DIR)/%.o $(LIB)
-	$(CXX) $(CXXFLAGS) -o $@ $(EXAMPLES_DIR)/$*.o $(LIB)
+$(BINS): $(BUILD_DIR)/%: $(BUILD_DIR)/%.o $(LIB) | $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(BUILD_DIR)/$*.o $(LIB)
 
-%.o: %.cpp $(HEADERS)
+$(BUILD_DIR)/%.o: %.cpp $(HEADERS) | $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-run: $(DEMOS)
-	for d in $(DEMOS); do echo "--- $$d"; ./$$d; done
+$(BUILD_DIR)/%.o: $(EXAMPLES_DIR)/%.cpp $(HEADERS) | $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(BUILD_DIR):
+	mkdir -p $@
+
+run: $(BINS)
+	for d in $(DEMOS); do echo "--- $$d"; ./$(BUILD_DIR)/$$d; done
 
 clean:
-	rm -f *.o $(EXAMPLES_DIR)/*.o $(LIB) $(DEMOS)
+	rm -rf $(BUILD_DIR)
 
 format:
 	$(CLANG_FORMAT) -i $(SOURCES) $(HEADERS)
