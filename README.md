@@ -1,7 +1,7 @@
 # mini-co
 
-Stackful cooperative coroutines for macOS (Apple Silicon and Intel).
-Libco-like API with a small, explicit scheduler interface.
+Educational cooperative coroutines for macOS (Apple Silicon and Intel).
+Includes stackful and stackless implementations.
 
 ## How it works
 
@@ -29,10 +29,15 @@ mini_co_release(co);
 The implementation uses hand-rolled assembly instead of `ucontext`,
 which Apple deprecated in macOS 10.6.
 
+Stackful coroutines preserve a call stack across `yield`. Stackless
+coroutines return after each step; suspended state lives in the
+caller-owned argument instead of a coroutine stack.
+
 ## Build
 
-`make` builds the library and all demos. `make run` runs them all;
-`make format-check` verifies formatting.
+`make` builds the library and all demos. `make run` runs the demos;
+`make test` runs the focused tests. `make format-check` verifies
+formatting. The project uses C++20.
 
-The `examples/` directory contains round-robin, dependency,
-await-style, and event-loop demos.
+The `examples/` directory contains round-robin, dependency, await-style,
+event-loop, stackless, stackless IO, async/await, and scheduler demos.
