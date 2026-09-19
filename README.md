@@ -1,21 +1,19 @@
 # mini-co
 
 Stackful cooperative coroutines for macOS (Apple Silicon and Intel).
-libco-like API, ~200 lines.
+Libco-like API with a small, explicit scheduler interface.
 
 ## How it works
 
-Each coroutine owns a malloc'd, aligned stack. A switch saves the
-callee-saved registers plus SP and loads the other coroutine's.
-Caller-saved registers need no handling; the call into resume/yield
-already spilled them.
+Each coroutine owns a 128 KB stack. A context switch saves the
+callee-saved registers and stack pointer, then loads the other
+coroutine's context.
 
 Scheduling is a stack of who resumed whom. Resume pushes, yield pops
 back to the resumer.
 
-Remaining details: 16-byte SP alignment, a preset first frame that
-returns into the entry trampoline, never resume a finished coroutine,
-never free a running one, one scheduler per thread.
+Coroutines are cooperative and same-thread only. They must not be
+resumed after finishing or released while running.
 
 ## Use
 
@@ -27,12 +25,14 @@ while (!mini_co_finished(co))
 mini_co_release(co);
 ```
 
-Same thread only, 128 KB per stack. Uses hand-rolled asm instead of
-ucontext, which Apple deprecated in macOS 10.6.
+`mini_co_create` returns 0 on success and -1 on allocation failure.
+The implementation uses hand-rolled assembly instead of `ucontext`,
+which Apple deprecated in macOS 10.6.
 
 ## Build
 
-make builds libminico.a and the demo. make run runs it. make
-format-check verifies formatting.
+`make` builds the library and all demos. `make run` runs them all;
+`make format-check` verifies formatting.
 
-Files: mini_co.h, mini_co.cpp, example_mini.cpp.
+The `examples/` directory contains round-robin, dependency,
+await-style, and event-loop demos.
