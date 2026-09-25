@@ -5,6 +5,26 @@ struct State {
     int value;
 };
 
+struct NestedState {
+    mini_co_t* parent;
+    mini_co_t* child;
+    int steps;
+};
+
+static void child_worker(void* arg) {
+    NestedState* state = (NestedState*)arg;
+    mini_co_resume(state->parent);
+    ++state->steps;
+}
+
+static void parent_worker(void* arg) {
+    NestedState* state = (NestedState*)arg;
+    mini_co_resume(state->parent);
+    ++state->steps;
+    mini_co_resume(state->child);
+    ++state->steps;
+}
+
 static void worker(void* arg) {
     State* state = (State*)arg;
     state->value = 1;
@@ -30,5 +50,15 @@ int main() {
     assert(mini_co_finished(co));
 
     mini_co_release(co);
+
+    NestedState nested = {nullptr, nullptr, 0};
+    assert(mini_co_create(&nested.parent, parent_worker, &nested) == 0);
+    assert(mini_co_create(&nested.child, child_worker, &nested) == 0);
+    mini_co_resume(nested.parent);
+    assert(nested.steps == 3);
+    assert(mini_co_finished(nested.parent));
+    assert(mini_co_finished(nested.child));
+    mini_co_release(nested.child);
+    mini_co_release(nested.parent);
     return 0;
 }

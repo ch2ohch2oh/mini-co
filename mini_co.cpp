@@ -8,6 +8,7 @@
 //   libco coctx_make (manual stack)     -> mini_co_init_ctx (manual stack)
 //   libco co_poll/co_eventloop          -> omitted; scheduling is explicit resume/yield
 #include "mini_co.h"
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -185,6 +186,9 @@ int mini_co_create(mini_co_t** out, mini_co_fn_t fn, void* arg) {
 
 void mini_co_resume(mini_co_t* co) {
     if (co->finished)
+        return;
+    // A running coroutine's context is not suspended and must not be restored.
+    if (std::find(t_stack.begin(), t_stack.end(), co) != t_stack.end())
         return;
     mini_ctx_t* caller = t_stack.empty() ? &t_main : &t_stack.back()->ctx;
     co->caller = caller;

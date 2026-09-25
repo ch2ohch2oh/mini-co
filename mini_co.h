@@ -12,7 +12,8 @@ struct mini_co_t;
 // Create paused coroutine; writes *co, returns 0 ok / -1 on OOM.
 int mini_co_create(mini_co_t** co, mini_co_fn_t fn, void* arg);
 
-// Run until yield or return; no-op if finished. Nesting ok.
+// Run until yield or return; no-op if finished or already active.
+// Nesting with a different coroutine is supported.
 void mini_co_resume(mini_co_t* co);
 
 // Pause self, back to resumer. Coroutine-only.

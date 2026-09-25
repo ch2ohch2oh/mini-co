@@ -42,7 +42,7 @@ run: $(BINS)
 	for d in $(DEMOS); do echo "--- $$d"; ./$(BUILD_DIR)/$$d; done
 
 test: $(TEST_BINS)
-	for t in $(TESTS); do echo "--- $$t"; ./$(BUILD_DIR)/$$t; done
+	set -e; for t in $(TESTS); do echo "--- $$t"; ./$(BUILD_DIR)/$$t; done
 
 clean:
 	rm -rf $(BUILD_DIR)
